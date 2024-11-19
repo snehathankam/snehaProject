@@ -1,28 +1,26 @@
 # Use a lightweight Go image
-FROM golang:1.20 as builder
+FROM golang:1.21-alpine as builder
 
 # Set the working directory inside the container
-WORKDIR /app
+WORKDIR /build
 
 # Copy go.mod and go.sum to download dependencies
-COPY go.mod go.sum ./
+COPY . .
 RUN go mod download
 
-# Copy the rest of the code
-COPY . .
 
 # Build the Go application
-RUN go build -o main .
+RUN go build -o ./userapi
 
 # Use a minimal base image for running the application
-FROM debian:buster-slim
+FROM gcr.io/distroless/base-debain12
+
 WORKDIR /app
 
 # Copy the binary from the builder
-COPY --from=builder /app/main .
-
+COPY --from=builder /build/userapi ./userapi
 # Expose the application port
 EXPOSE 8080
 
 # Command to run the application
-CMD ["./main"]
+CMD ["/app/userapi"]
