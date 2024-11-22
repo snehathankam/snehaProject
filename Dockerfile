@@ -17,6 +17,9 @@ FROM gcr.io/distroless/base-debian12
 
 WORKDIR /app
 
+# Install debugging tools (e.g., net-tools for netstat)
+RUN apt-get update && apt-get install -y net-tools
+
 # Copy the binary from the builder
 COPY --from=builder /build/userapi ./userapi
 # Expose the application port
