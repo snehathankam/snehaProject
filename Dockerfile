@@ -22,6 +22,8 @@ RUN apt-get update && apt-get install -y net-tools
 
 # Copy the binary from the builder
 COPY --from=builder /build/userapi ./userapi
+# Copy the templates directory
+COPY templates/ /app/templates/
 # Expose the application port
 EXPOSE 8080
 
