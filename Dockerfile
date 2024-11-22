@@ -13,7 +13,7 @@ RUN go mod download
 RUN go build -o ./userapi
 
 # Use a minimal base image for running the application
-FROM gcr.io/distroless/base-debain12
+FROM gcr.io/distroless/base-debian12
 
 WORKDIR /app
 
