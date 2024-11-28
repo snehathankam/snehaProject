@@ -15,7 +15,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  AZURE_SUBSCRIPTION: 'snehaProjectServiceConnection'
+  AZURE_SUBSCRIPTION: 'snehaProjectACRServiceConnection'
   ACR_NAME: 'spportfolio'
   APP_SERVICE_NAME: 'spPortfolioApp'
   IMAGE_NAME: 'userapi'
