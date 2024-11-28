@@ -1,0 +1,71 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master  
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  imageName: 'userapi'  # Docker image name
+  tag: 'latest'         # Docker image tag (change to version as needed)
+
+stages:
+# Stage 1: Build Docker Image
+- stage: Build
+  jobs:
+  - job: BuildDockerImage
+    steps:
+    - task: Checkout@2
+      displayName: 'Checkout Code'
+
+    # Install Go to verify the code if necessary
+    - task: UseGoVersion@1
+      inputs:
+        version: '1.x'  # Use the latest Go version
+        checkLatest: true
+
+    - script: |
+        go version
+        go build -o app .
+      displayName: 'Build Go Application'
+
+    - task: Docker@2
+      displayName: 'Build Docker Image'
+      inputs:
+        containerRegistry: 'snehaProjectServiceConnection'  
+        repository: '$(imageName)'
+        command: 'build'
+        dockerFile: 'Dockerfile'
+        tags: '$(tag)'
+
+# Stage 2: Push Docker Image to Azure Container Registry
+- stage: Push
+  dependsOn: Build
+  jobs:
+  - job: PushDockerImage
+    steps:
+    - task: Docker@2
+      displayName: 'Push Docker Image to ACR'
+      inputs:
+        containerRegistry: 'snehaProjectServiceConnection'  # Azure Container Registry connection
+        repository: '$(imageName)'
+        command: 'push'
+        tags: '$(tag)'
+
+# Stage 3: Deploy to Azure App Service
+- stage: Deploy
+  dependsOn: Push
+  jobs:
+  - job: DeployToAppService
+    steps:
+    - task: AzureWebAppContainer@1
+      displayName: 'Deploy Docker Image to Azure App Service'
+      inputs:
+        azureSubscription: 'Azure subscription 1'  # Azure subscription service connection
+        appName: 'spPortfolioApp'  # Azure App Service name
+        imageName: '$(imageName):$(tag)'
+
