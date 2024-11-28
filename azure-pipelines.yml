@@ -10,7 +10,7 @@ resources:
       type: github
       name: snehathankam/snehaProject  # Ensure this is the correct repository name
       ref: refs/heads/master  # Specify the branch name or commit SHA if needed
-      endpoint: snehaProjectACRServiceConnection
+      endpoint: snehaProjectGithubServiceConnection
   containers:
     - container: myContainer
       image: spportfolio.azurecr.io/userapi:$(Build.BuildId)
