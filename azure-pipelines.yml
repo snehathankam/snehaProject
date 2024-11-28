@@ -9,7 +9,7 @@ resources:
       image: spportfolio.azurecr.io/userapi:$(Build.BuildId)
 
 trigger:
-- mster
+- master
 
 pool:
   vmImage: 'ubuntu-latest'
