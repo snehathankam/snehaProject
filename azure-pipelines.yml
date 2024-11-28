@@ -4,6 +4,13 @@
 # https://aka.ms/yaml
 
 resources:
+
+  repositories:
+    - repository: snehathankam
+      type: github
+      name: snehathankam/snehaProject  # Ensure this is the correct repository name
+      ref: refs/heads/master  # Specify the branch name or commit SHA if needed
+
   containers:
     - container: myContainer
       image: spportfolio.azurecr.io/userapi:$(Build.BuildId)
