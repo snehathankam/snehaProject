@@ -3,52 +3,29 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-resources:
-
-  repositories:
-    - repository: snehathankam
-      type: github
-      name: snehathankam/snehaProject  # Ensure this is the correct repository name
-      ref: refs/heads/master  # Specify the branch name or commit SHA if needed
-      endpoint: 'snehaProjectGithubServiceConnection'
-  #containers:
-    #- container: myContainer
-    #  image: spportfolio.azurecr.io/userapi:$(Build.BuildId)
-
+# azure-pipelines.yml
 trigger:
-- master
+  branches:
+    include:
+      - main  # Triggers the pipeline on every push to the 'main' branch
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-latest'  # Choose the latest Ubuntu image for the build
 
-variables:
-  AZURE_SUBSCRIPTION: 'snehaProjectACRServiceConnection'
-  ACR_NAME: 'spportfolio'
-  APP_SERVICE_NAME: 'spPortfolioApp'
-  IMAGE_NAME: 'userapi'
+steps:
+  - task: Go@0
+    inputs:
+      version: '1.20'  # Go version you want to use
+  
+  - script: |
+      go mod tidy   # Cleans up dependencies
+      go build -o main .  # Builds the Go application
+    displayName: 'Build Go Application'
 
-stages:
-- stage: BuildAndPush
-  jobs:
-  - job: BuildDockerImage
-    steps:
-    - task: Docker@2
-      inputs:
-        containerRegistry: $(AZURE_SUBSCRIPTION)
-        repository: $(ACR_NAME)/$(IMAGE_NAME)
-        command: buildAndPush
-        Dockerfile: '**/Dockerfile'
-        tags: |
-          $(Build.BuildId)
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: $(Build.ArtifactStagingDirectory)  # Path to publish build artifacts
+      artifactName: 'drop'
+      publishLocation: 'Container'  # Specifies where to publish artifacts (e.g., Azure Storage)
 
-- stage: Deploy
-  dependsOn: BuildAndPush
-  jobs:
-  - job: DeployToAppService
-    steps:
-    - task: AzureWebAppContainer@1
-      inputs:
-        azureSubscription: $(AZURE_SUBSCRIPTION)
-        appName: $(APP_SERVICE_NAME)
-        imageName: $(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.BuildId)
 
