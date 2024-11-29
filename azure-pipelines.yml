@@ -3,76 +3,55 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-# azure-pipelines.yml
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- master  
-
+  - master
 pool:
-  vmImage: 'ubuntu-latest'
-
+  vmImage: ubuntu-latest
 variables:
-  imageName: 'userapi'  # Docker image name
-  tag: 'latest'         # Docker image tag (change to version as needed)
-
+  imageName: userapi
+  tag: latest
 stages:
-# Stage 1: Build Docker Image
-- stage: Build
-  jobs:
-  - job: BuildDockerImage
-    steps:
-    - checkout : self
-      clean: true
-
-    # Install Go to verify the code if necessary
-    - task: UseGoVersion@1
-      inputs:
-        version: '1.x'  # Use the latest Go version
-        checkLatest: true
-
- - script: |
-     sudo apt update
-     sudo apt install -y golang-go
-     go version
-   displayName: 'Install Go and Check Version'
-
- - task: Docker@2
-      displayName: 'Build Docker Image'
-      inputs:
-        containerRegistry: 'snehaProjectACRServiceConnection'  
-        repository: '$(imageName)'
-        command: 'build'
-        dockerFile: 'Dockerfile'
-        tags: '$(tag)'
-
-# Stage 2: Push Docker Image to Azure Container Registry
-- stage: Push
-  dependsOn: Build
-  jobs:
-  - job: PushDockerImage
-    steps:
-    - task: Docker@2
-      displayName: 'Push Docker Image to ACR'
-      inputs:
-        containerRegistry: 'snehaProjectACRServiceConnection'  # Azure Container Registry connection
-        repository: '$(imageName)'
-        command: 'push'
-        tags: '$(tag)'
-
-# Stage 3: Deploy to Azure App Service
-- stage: Deploy
-  dependsOn: Push
-  jobs:
-  - job: DeployToAppService
-    steps:
-    - task: AzureWebAppContainer@1
-      displayName: 'Deploy Docker Image to Azure App Service'
-      inputs:
-        azureSubscription: 'Azure subscription 1'  # Azure subscription service connection
-        appName: 'spPortfolioApp'  # Azure App Service name
-        imageName: '$(imageName):$(tag)'
+  - stage: Build
+    jobs:
+      - job: BuildDockerImage
+        steps:
+          - checkout: self
+            clean: true
+          #Install Go manually
+          - script: |
+              sudo apt update
+              sudo apt install -y golang-go
+              go version
+            displayName: Install Go and Check Version
+          - task: Docker@2
+            displayName: Build Docker Image
+            inputs:
+              containerRegistry: snehaProjectACRServiceConnection
+              repository: $(imageName)
+              command: build
+              dockerFile: Dockerfile
+              tags: $(tag)
+  - stage: Push
+    dependsOn: Build
+    jobs:
+      - job: PushDockerImage
+        steps:
+          - task: Docker@2
+            displayName: Push Docker Image to ACR
+            inputs:
+              containerRegistry: snehaProjectACRServiceConnection
+              repository: $(imageName)
+              command: push
+              tags: $(tag)
+  - stage: Deploy
+    dependsOn: Push
+    jobs:
+      - job: DeployToAppService
+        steps:
+          - task: AzureWebAppContainer@1
+            displayName: Deploy Docker Image to Azure App Service
+            inputs:
+              azureSubscription: snehaProjectARMServiceConnection
+              appName: spPortfolioApp
+              imageName: $(imageName):$(tag)
 
