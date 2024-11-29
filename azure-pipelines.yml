@@ -5,53 +5,53 @@
 
 trigger:
   - master
+
 pool:
   vmImage: ubuntu-latest
+
 variables:
   imageName: userapi
   tag: latest
-stages:
-  - stage: Build
-    jobs:
-      - job: BuildDockerImage
-        steps:
-          - checkout: self
-            clean: true
-          #Install Go manually
-          - script: |
-              sudo apt update
-              sudo apt install -y golang-go
-              go version
-            displayName: Install Go and Check Version
-          - task: Docker@2
-            displayName: Build Docker Image
-            inputs:
-              containerRegistry: snehaProjectACRServiceConnection
-              repository: $(imageName)
-              command: build
-              dockerFile: Dockerfile
-              tags: $(tag)
-  - stage: Push
-    dependsOn: Build
-    jobs:
-      - job: PushDockerImage
-        steps:
-          - task: Docker@2
-            displayName: Push Docker Image to ACR
-            inputs:
-              containerRegistry: snehaProjectACRServiceConnection
-              repository: $(imageName)
-              command: push
-              tags: $(tag)
-  - stage: Deploy
-    dependsOn: Push
-    jobs:
-      - job: DeployToAppService
-        steps:
-          - task: AzureWebAppContainer@1
-            displayName: Deploy Docker Image to Azure App Service
-            inputs:
-              azureSubscription: snehaProjectARMServiceConnection
-              appName: spPortfolioApp
-              imageName: $(imageName):$(tag)
 
+stages:
+- stage: BuildPushDeploy
+  jobs:
+  - job: BuildPushDeployJob
+    steps:
+    # Checkout the code
+    - checkout: self
+      clean: true
+
+    # Install Go manually
+    - script: |
+        sudo apt update
+        sudo apt install -y golang-go
+        go version
+      displayName: Install Go and Check Version
+
+    # Build Docker Image
+    - task: Docker@2
+      displayName: Build Docker Image
+      inputs:
+        containerRegistry: snehaProjectACRServiceConnection
+        repository: $(imageName)
+        command: build
+        dockerFile: Dockerfile
+        tags: $(tag)
+
+    # Push Docker Image to ACR
+    - task: Docker@2
+      displayName: Push Docker Image to ACR
+      inputs:
+        containerRegistry: snehaProjectACRServiceConnection
+        repository: $(imageName)
+        command: push
+        tags: $(tag)
+
+    # Deploy Docker Image to Azure App Service
+    - task: AzureWebAppContainer@1
+      displayName: Deploy Docker Image to Azure App Service
+      inputs:
+        azureSubscription: snehaProjectARMServiceConnection
+        appName: spPortfolioApp
+        imageName: $(imageName):$(tag)
