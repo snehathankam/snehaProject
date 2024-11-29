@@ -7,7 +7,7 @@
 trigger:
   branches:
     include:
-      - main  # Triggers the pipeline on every push to the 'main' branch
+      - master  # Triggers the pipeline on every push to the 'main' branch
 
 pool:
   vmImage: 'ubuntu-latest'  # Choose the latest Ubuntu image for the build
