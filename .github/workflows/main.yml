@@ -1,0 +1,50 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master  # Trigger on pushes to the master branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE_NAME: userapi
+      TAG: latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Install Go (Optional, since Docker image may already have Go)
+      - name: Install Go
+        run: |
+          sudo apt update
+          sudo apt install -y golang-go
+          go version
+
+      # Step 3: Build Docker Image
+      - name: Build Docker Image
+        run: |
+          docker build -t $IMAGE_NAME:$TAG .
+
+      # Step 4: Log in to Azure Container Registry (ACR)
+      - name: Log in to ACR
+        run: |
+          echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ secrets.ACR_LOGIN_SERVER }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
+
+      # Step 5: Push Docker Image to ACR
+      - name: Push Docker Image
+        run: |
+          docker tag $IMAGE_NAME:$TAG ${{ secrets.ACR_LOGIN_SERVER }}/$IMAGE_NAME:$TAG
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/$IMAGE_NAME:$TAG
+
+      # Step 6: Deploy to Azure App Service
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: spPortfolioApp
+          images: ${{ secrets.ACR_LOGIN_SERVER }}/$IMAGE_NAME:$TAG
+          azure-rm-credentials: ${{ secrets.AZURE_CREDENTIALS }}
