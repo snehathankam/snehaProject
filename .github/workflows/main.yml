@@ -52,4 +52,4 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: spPortfolioApp
-          images: ${{ secrets.ACR_LOGIN_SERVER }}/$IMAGE_NAME:$TAG 
+          images: ${{ secrets.ACR_LOGIN_SERVER }}/userapi:latest 
