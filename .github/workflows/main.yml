@@ -48,3 +48,4 @@ jobs:
           app-name: spPortfolioApp
           images: ${{ secrets.ACR_LOGIN_SERVER }}/$IMAGE_NAME:$TAG
           azure-rm-credentials: ${{ secrets.AZURE_CREDENTIALS }}
+       #End of Deployment   
