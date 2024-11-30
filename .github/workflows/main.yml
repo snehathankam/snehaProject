@@ -41,11 +41,15 @@ jobs:
           docker tag $IMAGE_NAME:$TAG ${{ secrets.ACR_LOGIN_SERVER }}/$IMAGE_NAME:$TAG
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/$IMAGE_NAME:$TAG
 
-      # Step 6: Deploy to Azure App Service
+     # Step 6: Azure Login 
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Step 7: Deploy to Azure App Service
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: spPortfolioApp
-          images: ${{ secrets.ACR_LOGIN_SERVER }}/$IMAGE_NAME:$TAG
-          azure-rm-credentials: ${{ secrets.AZURE_CREDENTIALS }}
-       #End of Deployment   
+          images: ${{ secrets.ACR_LOGIN_SERVER }}/$IMAGE_NAME:$TAG 
